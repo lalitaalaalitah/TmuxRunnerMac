@@ -13,18 +13,36 @@ A lightweight macOS application wrapper that sets `tmux` as the default applicat
 
 ### Declarative Installation (Nix / Home Manager)
 
-Since `TmuxRunner.app` is pre-compiled in this repository, you can simply pull this repo into your Nix configuration and map the `TmuxRunner.app` to your `~/Applications/Home Manager Apps/` directory, and configure `duti` declaratively via Home Manager:
+Since `TmuxRunner.app` is pre-compiled in this repository, you can pull this repo into your Nix configuration, map the `TmuxRunner.app` to your `~/Applications/` directory using `home.file`, and configure `duti` declaratively via Home Manager:
 
 ```nix
+{ config, pkgs, lib, ... }:
+
+let
+  # Fetch the repository
+  tmuxRunnerRepo = builtins.fetchGit {
+    url = "https://github.com/lalitaalaalitah/TmuxRunnerMac.git";
+    ref = "main";
+    # Uncomment and use a specific revision for reproducibility:
+    # rev = "your_commit_hash_here";
+  };
+in
 {
-  # In your home.packages or similar:
+  # 1. Install duti
   home.packages = [ pkgs.duti ];
   
-  # ... Add derivation or file sourcing for TmuxRunner.app here ...
+  # 2. Map TmuxRunner.app to your Applications folder
+  home.file."Applications/TmuxRunner.app" = {
+    source = "${tmuxRunnerRepo}/TmuxRunner.app";
+    recursive = true;
+  };
   
-  # Set default associations
+  # 3. Set default file associations
   home.activation.setTmuxRunnerDefaults = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    # Register the app with Launch Services so macOS knows about it
     /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f "$HOME/Applications/TmuxRunner.app"
+    
+    # Associate .sh and .command files with TmuxRunner
     $DRY_RUN_CMD ${pkgs.duti}/bin/duti -s com.user.TmuxRunner public.shell-script all
     $DRY_RUN_CMD ${pkgs.duti}/bin/duti -s com.user.TmuxRunner com.apple.terminal.shell-script all
   '';
