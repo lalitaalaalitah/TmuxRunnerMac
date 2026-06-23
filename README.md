@@ -11,9 +11,54 @@ A lightweight macOS application wrapper that sets `tmux` as the default applicat
 
 ## Installation
 
-### Declarative Installation (Nix / Home Manager)
+### Declarative Installation from Release (Recommended)
 
-Since `TmuxRunner.app` is pre-compiled in this repository, you can pull this repo into your Nix configuration, map the `TmuxRunner.app` to your `~/Applications/` directory using `home.file`, and configure `duti` declaratively via Home Manager:
+You can download the pre-compiled `TmuxRunner.zip` from GitHub Releases, extract it, and map it to your applications folder using Home Manager:
+
+```nix
+{ config, pkgs, lib, ... }:
+
+let
+  version = "1.0.0"; # Update this to the latest release version
+  
+  # Fetch the compiled app bundle from GitHub Releases
+  tmuxRunnerZip = pkgs.fetchurl {
+    url = "https://github.com/lalitaalaalitah/TmuxRunnerMac/releases/download/v${version}/TmuxRunner.zip";
+    sha256 = "0000000000000000000000000000000000000000000000000000"; # Replace with actual sha256 or run nix-prefetch-url
+  };
+
+  # Create a derivation to unzip the app
+  tmuxRunnerApp = pkgs.stdenv.mkDerivation {
+    pname = "TmuxRunner";
+    inherit version;
+    src = tmuxRunnerZip;
+    nativeBuildInputs = [ pkgs.unzip ];
+    sourceRoot = ".";
+    installPhase = ''
+      mkdir -p $out/Applications
+      cp -r TmuxRunner.app $out/Applications/
+    '';
+  };
+in
+{
+  # 1. Install duti and the TmuxRunner application
+  home.packages = [ pkgs.duti tmuxRunnerApp ];
+  
+  # 2. Set default file associations
+  home.activation.setTmuxRunnerDefaults = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    # Register the app with Launch Services so macOS knows about it
+    /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f "${tmuxRunnerApp}/Applications/TmuxRunner.app"
+    
+    # Associate .sh and .command files with TmuxRunner
+    $DRY_RUN_CMD ${pkgs.duti}/bin/duti -s com.user.TmuxRunner public.shell-script all
+    $DRY_RUN_CMD ${pkgs.duti}/bin/duti -s com.user.TmuxRunner com.apple.terminal.shell-script all
+  '';
+}
+```
+
+### Declarative Installation from Source Repo
+
+If you prefer to pull the pre-compiled app directly from the source repository instead of the release artifact:
 
 ```nix
 { config, pkgs, lib, ... }:
