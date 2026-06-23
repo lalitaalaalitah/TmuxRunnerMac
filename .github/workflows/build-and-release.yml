@@ -1,0 +1,44 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build TmuxRunner.app
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Zip the application
+        run: |
+          zip -qr TmuxRunner.zip TmuxRunner.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TmuxRunner
+          path: TmuxRunner.zip
+
+      - name: Create Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v$(date +'%Y.%m.%d-%H%M%S')"
+          gh release create "$TAG" TmuxRunner.zip \
+            --title "Release $TAG" \
+            --notes "Automated release for commit ${{ github.sha }}."
