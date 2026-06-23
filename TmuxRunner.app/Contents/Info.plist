@@ -35,8 +35,12 @@
 	<string>TmuxRunner</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
 	<key>CFBundleSignature</key>
 	<string>dplt</string>
+	<key>CFBundleVersion</key>
+	<string>1.0.0</string>
 	<key>LSMinimumSystemVersionByArchitecture</key>
 	<dict>
 		<key>x86_64</key>
@@ -56,6 +60,8 @@
 	<string>This script needs access to your contacts to run.</string>
 	<key>NSHomeKitUsageDescription</key>
 	<string>This script needs access to your HomeKit Home to run.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>© 2026 lalitaalaalitah</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This script needs access to your microphone to run.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
