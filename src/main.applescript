@@ -3,7 +3,15 @@ on open theFiles
 		set posixPath to POSIX path of theFile
 		set theDir to do shell script "dirname " & quoted form of posixPath
 		set runCmd to "/bin/bash -c " & quoted form of ("\"" & posixPath & "\" ; echo ; read -n 1 -s -p \"Press any key or Ctrl+C to close...\"")
-		set cmd to "cd " & quoted form of theDir & " && /run/current-system/sw/bin/tmux new-window -c " & quoted form of theDir & " " & quoted form of runCmd & " || /run/current-system/sw/bin/tmux new-session -d -c " & quoted form of theDir & " " & quoted form of runCmd & " \\; attach-session"
+		
+		set hasTmux to do shell script "grep -qE '\\btmux\\b' " & quoted form of posixPath & "; echo $?"
+		
+		if hasTmux is "0" then
+			set cmd to "cd " & quoted form of theDir & " && " & runCmd
+		else
+			set cmd to "cd " & quoted form of theDir & " && /run/current-system/sw/bin/tmux new-window -c " & quoted form of theDir & " " & quoted form of runCmd & " || /run/current-system/sw/bin/tmux new-session -d -c " & quoted form of theDir & " " & quoted form of runCmd & " \\; attach-session"
+		end if
+		
 		do shell script "open -n -a \"Alacritty\" --args -e sh -c " & quoted form of cmd
 	end repeat
 end open
