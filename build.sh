@@ -7,7 +7,7 @@ BUNDLE_ID="com.user.TmuxRunner"
 SRC_FILE="src/main.applescript"
 
 # Default version if not provided via environment
-VERSION="${VERSION:-1.2}"
+VERSION="${VERSION:-1.2.1}"
 PUBLISHER="lalitaalaalitah"
 COPYRIGHT="© $(date +%Y) $PUBLISHER"
 
